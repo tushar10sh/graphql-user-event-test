@@ -4,54 +4,38 @@ const bcrypt = require('bcryptjs');
 // import mongoose models for controller logic
 const userModel = require('../../models/user');
 const eventModel = require('../../models/events');
+const bookingModel = require('../../models/booking');
 
-const getEventsbyIds = async eventIds => {
-    try {
-        const evs = await eventModel.find({ _id : {$in: eventIds }});
-        return evs.map( event => {
-            return {
-                ...event._doc,
-                _id: event.id,
-                date: new Date(event._doc.date).toISOString(),
-                createdBy: getUserByID.bind(this, event._doc.createdBy)
-            }
-        })
-    } catch (err) {
-        console.log(err);
-        // throw err;
-    }
-}
-const getUserByID = async userId => {
-    try {
-        
-        const userResult = await userModel.findOne( { _id: userId });
-        return {
-            ...userResult._doc,
-            _id: userResult.id,
-            password: null,
-            createdEvents: getEventsbyIds.bind(this, userResult._doc.createdEvents)
-        }
-    } catch ( err ) {
-        console.log(err);
-        // throw err;
-    }
-}
+const getEventById = require('./helper').getEventbyId;
+// import object response formatters
+const { userResponse, eventResponse, bookingResponse } = require('./response');
 
 const events = async () => {
     try {
         const evs = await eventModel.find();
-        return evs.map( event => {
-            
-            return {
-                ...event._doc,
-                _id: event.id,
-                date: new Date(event._doc.date).toISOString(),
-                createdBy: getUserByID.bind(this, event._doc.createdBy)
-            }
-        });
+        return evs.map( event => eventResponse(event) );
     } catch (err) {
         console.log(err);
-        // throw err;
+        throw err;
+    }
+}
+
+const users = async () => {
+    try {
+        const usrs = await userModel.find();
+        return usrs.map( user => userResponse(user) );
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+}
+
+const bookings = async () => {
+    try {
+        const bkings = await bookingModel.find();
+        return bkings.map( booking => bookingResponse(booking))
+    } catch (err) {
+
     }
 }
 
@@ -62,16 +46,12 @@ const createEvent = async args => {
             description: args.eventInput.description,
             price: +args.eventInput.price,
             date: new Date(args.eventInput.date),
+            // createdBy: '5dcceca11305db5ae6dc073f'
             createdBy: '5dcc6246e7ef3225a509607c'
         });
-        let createdEvent;
+        
         const result = await event.save();
-        createdEvent = {
-            ...result._doc,
-            _id: result.id,
-            date: new Date(result._doc.date),
-            createdBy: getUserByID.bind(this, result._doc.createdBy)
-        }
+        let createdEvent = eventResponse(result);
         const creator = await userModel.findOne({ _id: result._doc.createdBy });
         if (!creator) {
             throw new Error("User doesnot exist for this event");
@@ -81,7 +61,7 @@ const createEvent = async args => {
         return createdEvent;
     } catch (err) {
         console.log(err);
-        // throw err;
+        throw err;
     }
 }
 
@@ -97,19 +77,51 @@ const createUser = async args => {
             password: hashedPassword
         });
         const userCreated = await userObj.save();
-        return {
-            ...userCreated._doc,
-            password: null,
-            _id: userCreated.id
+        return userResponse(userCreated)
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+}
+
+const bookEvent = async args => {
+    try {
+        const event = await eventModel.findOne({ _id: args.eventId })
+        const booking = bookingModel({
+            event: event,
+            // user: '5dcceca11305db5ae6dc073f'
+            user: '5dcc6246e7ef3225a509607c'
+        });
+        const createdBooking = await booking.save();
+        return bookingResponse(createdBooking);
+    } catch (err) {
+        console.log(err);
+        throw err
+    }
+}
+
+const cancelBooking = async args => {
+    try {
+        const booking = await bookingModel.findById(args.bookingId);
+        if ( booking ) {
+            const event = await getEventById(booking._doc.event);
+            await bookingModel.deleteOne({ _id: booking.id });
+            return event;
+        } else {
+            throw new Error(`Booking with id: ${args.bookingId} not found `);
         }
     } catch (err) {
         console.log(err);
-        // throw err;
+        throw err
     }
 }
 
 module.exports = {
     events,
+    users,
+    bookings,
     createEvent,
-    createUser
+    createUser,
+    bookEvent,
+    cancelBooking
 }

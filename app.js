@@ -26,6 +26,7 @@ app.use('/graphql',expressGraphQL({
 // Start application by binding to a port
 mongoose.connect(
     `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0-vcz7b.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`
+    // `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@10.61.241.238:27017/${process.env.MONGO_DB}?retryWrites=true&authSource=admin&w=1`
 ).then( () => {
     app.listen(config.port, () => {
         console.log(`Server is running at port ${config.port}`);
