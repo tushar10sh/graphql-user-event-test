@@ -15,10 +15,10 @@ const userSchema = new Schema({
             ref: 'Event'
         }
     ],
-    bookedEvents: [
+    bookings: [
         {
             type: Schema.Types.ObjectId,
-            ref: 'Event'
+            ref: 'Booking'
         }
     ]
 })

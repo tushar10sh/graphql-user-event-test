@@ -12,7 +12,7 @@ type User {
     email: String!
     password: String
     createdEvents: [Event!]
-    bookedEvents: [Event!]
+    bookings: [Booking!]
 }
 type Event {
     _id: ID!
@@ -40,6 +40,10 @@ type Query {
     events: [Event!]!
     users: [User!]!
     bookings: [Booking!]!
+    
+    booking(bookingId: ID!): Booking 
+    user(userId: ID!): User
+    event(eventId: ID!): Event
 }
 
 type Mutation {
@@ -47,5 +51,7 @@ type Mutation {
     createUser(userInput: UserInput): User
     bookEvent(eventId: ID!): Booking!
     cancelBooking(bookingId: ID!): Event!
+    deleteUser(email: String!): String
+    deleteEvent(eventId: ID!): String
 }
 `)
