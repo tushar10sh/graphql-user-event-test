@@ -34,7 +34,7 @@
     "apollo-link": "^1.2.13",
     "apollo-link-http": "^1.5.16",
     "nock": "^11.7.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "nodemon": "^1.19.4",
     "now": "^16.5.2"
   }
